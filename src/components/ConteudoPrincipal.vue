@@ -1,45 +1,48 @@
 <script lang="ts">
 
 import SelecionarIngredientes from './SelecionarIngredientes.vue';
-import Tag from './Tag.vue';
+import SuaLista from './SuaLista.vue';
+import MostrarReceitas from './MostrarReceitas.vue';
+
+type Pagina = 'SelecionarIngredientes' | 'MostrarReceitas';
 
 export default {
   data() {
     return {
-      ingredientes: [] as string[]
+      ingredientes: [] as string[],
+      conteudo: 'SelecionarIngredientes' as Pagina
     };
   },
-  components: {SelecionarIngredientes, Tag},
+  components: {SelecionarIngredientes, MostrarReceitas, SuaLista},
   methods: {
     adicionarIngredientes(ingrediente: string) {
       this.ingredientes.push(ingrediente)
     },
     removerIngrediente(ingrediente: string) {
       this.ingredientes = this.ingredientes.filter(iLista => ingrediente !== iLista);
+    },
+    navegar(pagina: Pagina) {
+      this.conteudo = pagina
     }
-  }
+  },
+  emits: ['adicionarIngrediente', 'removerIngrediente']
 }
 </script>
 <template>
   <main class="conteudo-principal">
-    <section>
-      <span class="subtitulo-lg sua-lista-texto">
-        Sua lista:
-      </span>
-      <ul v-if="ingredientes.length" class="ingredientes-sua-lista">
-        <li v-for="ingrediente in ingredientes" v-bind:key="ingrediente">
-          <Tag :texto="ingrediente" ativa/>
-        </li>
-      </ul>
-      <p v-else class="paragrafo lista-vazia">
-        <img src="../assets/imagens/icones/lista-vazia.svg" alt="Ícone de Pesquisa">
-        Sua listá está vazia, selecione ingredientes para iniciar
-      </p>
-    </section>
-    <SelecionarIngredientes
+    <SuaLista :ingredientes="ingredientes"/>
+    <KeepAlive include="SelecionarIngredientes">
+      <SelecionarIngredientes v-if="conteudo === 'SelecionarIngredientes'"
       @adicionar-ingrediente="adicionarIngredientes($event)"
       @remover-ingrediente="removerIngrediente($event)"
-    />
+      @buscarReceitas="navegar('MostrarReceitas')"
+      />
+      <MostrarReceitas
+      v-else-if="conteudo === 'MostrarReceitas'"
+      @editar-receitas="navegar('SelecionarIngredientes')"
+      :ingredientes="ingredientes"
+      />
+    </KeepAlive>
   </main>
 </template>
 <style scoped>
